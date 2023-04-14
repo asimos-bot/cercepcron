@@ -15,7 +15,6 @@ void freeSLP(SLP* slp);
 int forwardSLP(SLP* slp, dtype* x);
 
 typedef struct {
-  dtype errorThreshold;
   dtype maxNumIterations;
   dtype learningRate;
   // rows is predicted, columns is actual

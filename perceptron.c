@@ -15,7 +15,7 @@ void freeSLP(SLP* slp) {
   free(slp);
 }
 int forwardSLP(SLP* slp, dtype* x) {
-  dtype y = -20; //slp->weights[0];
+  dtype y = slp->weights[0];
   for(unsigned int i = 1; i < slp->weightsLen; i++) y += slp->weights[i] * x[i-1];
   return 0 <= y;
 }

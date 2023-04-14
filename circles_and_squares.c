@@ -8,16 +8,16 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#define WIDTH 400
-#define HEIGHT 400
+#define WIDTH 40
+#define HEIGHT 40
 #define MIN(a, b) a < b ? a : b
 #define CIRCLE 0
 #define RECT 1
 
-#define NUM_SAMPLES 1000
-#define NUM_ITERS 10000
-#define LEARNING_RATE 0.9
-#define ERROR 0.001
+#define NUM_SAMPLES 100000
+#define NUM_ITERS 1000
+#define LEARNING_RATE 0.001
+#define TRAIN_PERCENTAGE 0.9
 
 #define debug fprintf(stderr, "%s:%u\n", __FILE__, __LINE__)
 
@@ -88,33 +88,23 @@ Dataset* createDataset() {
     dataset->x = calloc(WIDTH * HEIGHT * NUM_SAMPLES, sizeof(dtype));
     dataset->y = calloc(NUM_SAMPLES, sizeof(unsigned int));
 
-    unsigned int i = 0;
-    for(; i < NUM_SAMPLES/2; i++) {
+    for(unsigned int i = 0; i < NUM_SAMPLES; i++) {
         rect(&dataset->x[i * WIDTH * HEIGHT]);
         dataset->y[i] = RECT;
-        circle(&dataset->x[2*i * WIDTH * HEIGHT]);
-        dataset->y[2*i] = CIRCLE;
+        i++;
+        circle(&dataset->x[i * WIDTH * HEIGHT]);
+        dataset->y[i] = CIRCLE;
     }
     return dataset; 
 }
 
 void map_metric_to_plot_points(float* metric, unsigned int len, unsigned int* points, unsigned int term_width, unsigned int term_height) {
 
-    if(!len) {
-        for(unsigned int i = 0; i < term_width; i++) points[i] = term_height-1;
-        return;
-    }
-    float scale_width = (float)term_width/len;
-    float scale_height = (float)term_height;
-    for(unsigned int i = 0; i < term_width; i++) {
-        unsigned int metric_idx = scale_width * i;
-        float value = metric[metric_idx] * scale_height;
-        points[i] = term_height - ((unsigned int) value) - 1;
-    }
-    if(len < term_width) {
-        for(unsigned int i = len; i < term_width; i++) {
-            points[i] = term_height;
-        }
+    for(unsigned int i = 0; i < term_width; i++) points[i] = term_height+1;
+    unsigned int min = MIN(len, term_width);
+    for(unsigned int i = 0; i < min; i++) {
+        unsigned int metric_idx = len - min + i;
+        points[i] = term_height - (metric[metric_idx] * term_height) - 1;
     }
 }
 
@@ -139,7 +129,7 @@ void ascii_plot(float* metric, unsigned int len) {
     map_metric_to_plot_points(metric, len, points, term_width, term_height-1);
     for(unsigned int i = 0; i < term_width; i++) {
         if(points[i] < term_height-1) {
-            term[points[i]+1][i] = '-';
+            term[points[i]+1][i] = 'o';
         }
     }
     printf("\n");
@@ -160,7 +150,6 @@ int main() {
 
     SLPTrainConfig* config = createSLPTrainConfig();
     config->learningRate = LEARNING_RATE;
-    config->errorThreshold = ERROR;
     config->maxNumIterations = NUM_ITERS;
     SLP* slp = createSLP(WIDTH * HEIGHT);
 
@@ -190,13 +179,12 @@ int main() {
             }
             ascii_plot(accuracy, accuracyLen);
         } else if(id == 1) {
-            trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, 0.9, &accuracy, &accuracyLen);
+            trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, TRAIN_PERCENTAGE, &accuracy, &accuracyLen);
             stop = 1;
         }
     }
 #else
-
-    trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, 0.9, &accuracy, &accuracyLen);
+    trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, TRAIN_PERCENTAGE, &accuracy, &accuracyLen);
 #endif
     return 0;
 }
