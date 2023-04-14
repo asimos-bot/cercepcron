@@ -14,8 +14,8 @@
 #define CIRCLE 0
 #define RECT 1
 
-#define NUM_SAMPLES 100
-#define NUM_ITERS 1000
+#define NUM_SAMPLES 1000
+#define NUM_ITERS 10000
 #define LEARNING_RATE 0.9
 #define ERROR 0.001
 
@@ -63,7 +63,7 @@ dtype* rect(dtype* img) {
 dtype* circle(dtype* img) {
     int centerX = rand() % WIDTH;
     int centerY = rand() % HEIGHT;
-    int radius = rand() % MIN(WIDTH/3, HEIGHT/3);
+    int radius = rand() % MIN(WIDTH/2, HEIGHT/2);
     radius *= radius;
     for(int i = 0; i < HEIGHT; i++) {
         for(int j = 0; j < WIDTH; j++) {
@@ -88,17 +88,12 @@ Dataset* createDataset() {
     dataset->x = calloc(WIDTH * HEIGHT * NUM_SAMPLES, sizeof(dtype));
     dataset->y = calloc(NUM_SAMPLES, sizeof(unsigned int));
 
-    // circles
     unsigned int i = 0;
     for(; i < NUM_SAMPLES/2; i++) {
         rect(&dataset->x[i * WIDTH * HEIGHT]);
         dataset->y[i] = RECT;
-        toPPM(&dataset->x[i * WIDTH * HEIGHT], "rect.ppm");
-    }
-    // rects
-    for(; i < NUM_SAMPLES; i++) {
-        circle(&dataset->x[i * WIDTH * HEIGHT]);
-        dataset->y[i] = CIRCLE;
+        circle(&dataset->x[2*i * WIDTH * HEIGHT]);
+        dataset->y[2*i] = CIRCLE;
     }
     return dataset; 
 }
@@ -195,13 +190,13 @@ int main() {
             }
             ascii_plot(accuracy, accuracyLen);
         } else if(id == 1) {
-            trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, 1, &accuracy, &accuracyLen);
+            trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, 0.9, &accuracy, &accuracyLen);
             stop = 1;
         }
     }
 #else
 
-    trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, 1, &accuracy, &accuracyLen);
+    trainSLP(slp, config, dataset->x, dataset->y, NUM_SAMPLES, 0.9, &accuracy, &accuracyLen);
 #endif
     return 0;
 }

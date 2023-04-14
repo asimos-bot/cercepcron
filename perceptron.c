@@ -15,14 +15,10 @@ void freeSLP(SLP* slp) {
   free(slp);
 }
 int forwardSLP(SLP* slp, dtype* x) {
-  dtype y = slp->weights[0];
+  dtype y = -20; //slp->weights[0];
   for(unsigned int i = 1; i < slp->weightsLen; i++) y += slp->weights[i] * x[i-1];
   return 0 <= y;
 }
-
-#define SLPTrainConfigTotal(config) (config->confusionMatrix[0][0] + config->confusionMatrix[1][1] + config->confusionMatrix[1][0] + config->confusionMatrix[0][1])
-#define SLPTrainConfigCorrect(config) (config->confusionMatrix[0][0] + config->confusionMatrix[1][1])
-#define SLPTrainConfigIncorrect(config) (config->confusionMatrix[1][0] + config->confusionMatrix[0][1])
 
 SLPTrainConfig* createSLPTrainConfig() {
   SLPTrainConfig* config = malloc(sizeof(SLPTrainConfig));
@@ -30,40 +26,43 @@ SLPTrainConfig* createSLPTrainConfig() {
   return config;
 }
 
-float SLPAccuracy(SLPTrainConfig* config) {
-  return (float)SLPTrainConfigCorrect(config)/SLPTrainConfigTotal(config);
-}
-
 #if !defined(_OPENMP)
     #include <stdio.h>
 #endif
 
-void trainSLP(SLP* slp, SLPTrainConfig* config, dtype* x, unsigned int* y, unsigned int numSamples, float trainPercentage, float** accuracy, unsigned int* accuracyLen) {
-  unsigned trainLen = trainPercentage * numSamples;
-  *accuracyLen = 0;
-  // iterations
-  for(unsigned long iter = 0; iter < config->maxNumIterations; iter++) {
-
-    // go through each sample
-    for(unsigned long sample = 0; sample < trainLen; sample++) {
-      dtype* currentInput = &x[(slp->weightsLen - 1) * sample];
-      int currentLabel = y[sample];
-      int predictedClass = forwardSLP(slp, currentInput);
-      int diff = currentLabel - predictedClass;
+void trainSLPIter(SLP* slp, SLPTrainConfig* config, dtype* sample, dtype sampleLabel) {
+      int predictedClass = forwardSLP(slp, sample);
+      int diff = sampleLabel - predictedClass;
       // bias
       slp->weights[0] += config->learningRate * diff;
       // other weights
       for(unsigned long i = 1; i < slp->weightsLen; i++) {
-          slp->weights[i] += config->learningRate * diff * currentInput[i-1];
+          slp->weights[i] += config->learningRate * diff * sample[i-1];
       }
-      config->confusionMatrix[currentLabel][predictedClass]++;
+}
+
+void trainSLP(SLP* slp, SLPTrainConfig* config, dtype* x, unsigned int* y, unsigned int numSamples, float trainPercentage, float** accuracy, unsigned int* accuracyLen) {
+    
+  *accuracyLen = 0;
+  unsigned int trainLen = numSamples * trainPercentage;
+  unsigned int testLen = numSamples - trainLen;
+  // iterations
+  for(unsigned long iter = 0; iter < config->maxNumIterations; iter++) {
+
+    // train
+    for(unsigned long sample = 0; sample < testLen; sample++) {
+        trainSLPIter(slp, config, &x[(slp->weightsLen - 1) * sample], y[sample]);
     }
-    // update accuracy history
+    // test
+    unsigned int correct = 0;
+    for(unsigned long sample = trainLen; sample < numSamples; sample++) {
+        correct += forwardSLP(slp, &x[(slp->weightsLen-1)* sample]) == y[sample];
+    }
     *accuracy = realloc(*accuracy, ((*accuracyLen)+1) * sizeof(float));
-    (*accuracy)[(*accuracyLen)] = SLPAccuracy(config);
+    (*accuracy)[(*accuracyLen)] = (float)correct/(testLen);
 #if !defined(_OPENMP)
-    printf("iter: %lu, accuracy: %f, total: %u, correct: %u, train_len %u, bias: %f\n", iter, (*accuracy)[(*accuracyLen)], SLPTrainConfigTotal(config), SLPTrainConfigCorrect(config), trainLen, slp->weights[0]); 
+    printf("iter: %lu, accuracy: %f\n", iter, (*accuracy)[(*accuracyLen)]); 
 #endif
-      (*accuracyLen)++;
+    (*accuracyLen)++;
   }
 }
