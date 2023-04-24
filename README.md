@@ -2,6 +2,11 @@
 
 Simple perceptron in C.
 
+## How to build
+
+* with ascii plot: `clang *.c -fopenmp; ./a.out`
+* without ascii plot and openmp: `clang *.c; ./a.out`
+
 ## Wait, what is a perceptron?
 
 A perceptron is a machine learning model that performs well for classification against linearly separable data.
@@ -9,8 +14,9 @@ A perceptron is a machine learning model that performs well for classification a
 [If you didn't get that, this video explains it visually pretty well](https://www.youtube.com/watch?v=4Gac5I64LM4)
 
 There are two types of perceptrons:
-    * __single-layer perceptron__ - what this code and the rest of the readme is about.
-    * __multi-layer perceptron__ - a fully-connected neural network. Can have more layers and more complex layer functions.
+
+* __single-layer perceptron__ - what this code and the rest of the readme is about.
+* __multi-layer perceptron__ - a fully-connected neural network. Can have more layers and more complex layer functions.
 
 Usually when saying just "perceptron" it is inferred that it is a reference to a single-layer one.
 
@@ -26,8 +32,9 @@ The error threshold determines when training will stop and the learning rate sca
 ### Layer
 
 A perceptron layer is composed of:
-    * __neurons__ - which have weights that are fine-tuned using training data.
-    * __threshold functions__ - that maps an input _x_ to a single binary value.
+
+* __neurons__ - which have weights that are fine-tuned using training data.
+* __threshold functions__ - that maps an input _x_ to a single binary value.
 
 __threshold functions__ usually look like this:
 

@@ -129,7 +129,7 @@ void ascii_plot(float* metric, unsigned int len) {
     map_metric_to_plot_points(metric, len, points, term_width, term_height-1);
     for(unsigned int i = 0; i < term_width; i++) {
         if(points[i] < term_height-1) {
-            term[points[i]+1][i] = 'o';
+            term[points[i]+1][i] = '.';
         }
     }
     printf("\n");
