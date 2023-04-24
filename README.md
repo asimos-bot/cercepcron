@@ -75,7 +75,7 @@ Perceptrons can do binary classification using just the __threshold function__:
 
 ## Multiclass Perceptron
 
-Multiclass perceptrons can classify multiple classes. However, training and classification will be differ from the binary classifier [[Perceptron]] since each class will have it's own weight vector.
+Multiclass perceptrons can classify multiple classes. However, training and classification will be differ from the binary classifier Perceptron since each class will have it's own weight vector.
 
 ### Inference
 
