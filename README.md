@@ -69,8 +69,9 @@ w[i] = w[i] + r * (y - ŷ) * x[i]
 ### Final Result
 
 Perceptrons can do binary classification using just the __threshold function__:
-    * returning __1__ means one class.
-    * returning __0__ means another class.
+
+* returning __1__ means one class.
+* returning __0__ means another class.
 
 ## Multiclass Perceptron
 
